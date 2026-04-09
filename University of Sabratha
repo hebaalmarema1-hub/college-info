@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تسجيل حضور ورشة</title>
+
+<style>
+body {
+    font-family: Tahoma;
+    background: linear-gradient(to right, #e3f2fd, #ffffff);
+    margin: 0;
+}
+
+.container {
+    max-width: 650px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+h1 { color: #0d47a1; }
+h2 { color: #1565c0; }
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background: #0d47a1;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1565c0;
+}
+
+.success { color: green; }
+.error { color: red; }
+
+.counter {
+    margin: 10px;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+th {
+    background: #0d47a1;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>تسجيل حضور ورشة</h1>
+
+<p><strong>رحلة داخل الكتف</strong></p>
+
+<div class="counter" id="count"></div>
+
+<input type="text" id="name" placeholder="الاسم">
+<input type="text" id="class" placeholder="الفصل">
+
+<button onclick="register()">تسجيل</button>
+
+<p id="msg"></p>
+
+<h3>📋 قائمة الحضور</h3>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>الاسم</th>
+<th>الفصل</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+</div>
+
+<script>
+let max = 80;
+
+// تحميل البيانات
+let attendees = JSON.parse(localStorage.getItem("attendees")) || [];
+
+function updateUI() {
+    document.getElementById("count").innerText =
+        "عدد المسجلين: " + attendees.length + " / " + max;
+
+    let list = document.getElementById("list");
+    list.innerHTML = "";
+
+    attendees.forEach((p, i) => {
+        list.innerHTML += `
+        <tr>
+        <td>${i+1}</td>
+        <td>${p.name}</td>
+        <td>${p.class}</td>
+        </tr>`;
+    });
+}
+
+function register() {
+    let name = document.getElementById("name").value.trim();
+    let className = document.getElementById("class").value.trim();
+    let msg = document.getElementById("msg");
+
+    msg.innerText = "";
+
+    if(name === "" || className === "") {
+        msg.innerText = "يرجى تعبئة كل البيانات";
+        msg.className = "error";
+        return;
+    }
+
+    // منع التكرار
+    let exists = attendees.some(p => p.name === name);
+    if(exists) {
+        msg.innerText = "⚠️ هذا الاسم مسجل مسبقًا";
+        msg.className = "error";
+        return;
+    }
+
+    // الحد الأقصى
+    if(attendees.length >= max) {
+        msg.innerText = "❌ تم الوصول للعدد الأقصى (80)";
+        msg.className = "error";
+        return;
+    }
+
+    attendees.push({name, class: className});
+
+    localStorage.setItem("attendees", JSON.stringify(attendees));
+
+    msg.innerText = "✅ تم التسجيل بنجاح";
+    msg.className = "success";
+
+    document.getElementById("name").value = "";
+    document.getElementById("class").value = "";
+
+    updateUI();
+}
+
+// تحميل أول مرة
+updateUI();
+</script>
+
+</body>
+</html>
